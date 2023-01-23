@@ -5,4 +5,4 @@ scp /conf/acme/unificontroller.crt root@192.168.10.60:/etc/ssl/certs/unificontro
 scp /conf/acme/graylog.crt root@192.168.10.45:/etc/graylog/tls/graylog-crt.pem
 scp /conf/acme/graylog.key root@192.168.10.45:/etc/graylog/tls/graylog-keyt.pem
 scp /conf/acme/so.key root@172.24.164.56:/etc/pki/managerssl.key
-scp /conf/acme/so.fullchain.pem root@172.24.164.56:/etc/pki/managerssl.crt
+scp /conf/acme/so.fullchain root@172.24.164.56:/etc/pki/managerssl.crt
