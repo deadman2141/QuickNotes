@@ -1,0 +1,252 @@
+import requests
+import re
+import argparse
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+
+def find_react_references(html_content):
+    patterns = [
+        r'API_KEY',
+        r'API_SECRET',
+        r'APP_SECRET',
+        r'AWS_ACCESS_KEY',
+        r'AWS_SECRET_KEY',
+        r'DB_HOST',
+        r'DB_NAME',
+        r'DB_PASS',
+        r'DB_USER',
+        r'ENCRYPTION_KEY',
+        r'ENVIRONMENT',
+        r'GCS_BUCKET',
+        r'GCS_KEYFILE',
+        r'JWT_SECRET',
+        r'NODE_ENV',
+        r'S3_BUCKET',
+        r'SECRET_KEY',
+        r'SSL_KEY',
+        r'access_token',
+        r'adminPassword',
+        r'apiKey',
+        r'appsettings.json',
+        r'authDomain',
+        r'authSource',
+        r'authToken',
+        r'azureStorageAccessKey',
+        r'azureStorageAccount',
+        r'bearerToken',
+        r'client_secret',
+        r'config.json',
+        r'connectionString',
+        r'dataSource',
+        r'dataSourceUrl',
+        r'database',
+        r'databaseURL',
+        r'debugMode',
+        r'deploySecret',
+        r'deploymentKey',
+        r'firebase',
+        r'firebaseConfig',
+        r'firebaseapp',
+        r'firebaseio',
+        r'licenseKey',
+        r'measurementId',
+        r'messagingSenderId',
+        r'oauthToken',
+        r'paypalClientId',
+        r'privateKey',
+        r'privatekey',
+        r'projectId',
+        r'sendgridKey',
+        r'sessionSecret',
+        r'storageBucket',
+        r'stripeKey',
+        r'twilioSid',
+        r'twilioToken',
+        r"access_key",
+        r"access_token",
+        r"amazonaws",
+        r"api_key",
+        r"api_secret",
+        r"apidocs",
+        r"apikey",
+        r"apiSecret",
+        r"app_key",
+        r"app_secret",
+        r"appkey",
+        r"appkeysecret",
+        r"application_key",
+        r"appsecret",
+        r"appspot",
+        r"auth_token",
+        r"authorizationToken",
+        r"aws_access",
+        r"aws_access_key_id",
+        r"aws_key",
+        r"aws_secret",
+        r"aws_token",
+        r"AWSSecretKey",
+        r"bucket_password",
+        r"client_secret",
+        r"cloudfront",
+        r"codecov_token",
+        r"config",
+        r"conn.login",
+        r"connectionstring",
+        r"consumer_key",
+        r"credentials",
+        r"database_password",
+        r"db_password",
+        r"db_username",
+        r"dbpasswd",
+        r"dbpassword",
+        r"dbuser",
+        r"dot-files",
+        r"dotfiles",
+        r"APP_SIGNAL",
+        r"encryption_key",
+        r"fabricApiSecret",
+        r"fb_secret",
+        r"gh_token",
+        r"github_key",
+        r"github_token",
+        r"gitlab",
+        r"gmail_password",
+        r"gmail_username",
+        r"herokuapp",
+        r"internal",
+        r"irc_pass",
+        r"JEKYLL_GITHUB_TOKEN",
+        r"keyPassword",
+        r"ldap_password",
+        r"ldap_username",
+        r"mailchimp",
+        r"mailgun",
+        r"master_key",
+        r"mydotfiles",
+        r"mysql",
+        r"node_env",
+        r"oauth_token",
+        r"preprod",
+        r"private_key",
+        r"prod",
+        r"rds.amazonaws.com",
+        r"redis_password",
+        r"root_password",
+        r"secret.password",
+        r"secret_access_key",
+        r"secret_key",
+        r"secret_token",
+        r"security_credentials",
+        r"sf_username",
+        r"slack_api",
+        r"slack_token",
+        r"sql_password",
+        r"staging",
+        r"stg",
+        r"storePassword",
+        r"stripe",
+        r"swagger",
+        r"testuser",
+        r"x-api-key",
+        r"bat",
+        r"cfg",
+        r"env",
+        r"api.forecast.io",
+        r".mailchimp",
+        r".git-credentials",
+        r".pgpass",
+        r".s3cfg",
+        r"beanstalkd.yml",
+        r"composer.json",
+        r"dbpasswd",
+        r"connections.xml",
+        r"aws_access_key_id",
+        r"dbeaver-data-sources.xml",
+        r"deployment-config.json",
+        r"dockercfg",
+        r"gitconfig",
+        r"oauth_token",
+        r"makefile",
+        r"master.key",
+        r"prod.exs",
+        r"prod.secret.exs",
+        r"secrets.yml",
+        r"WebServers.xml",
+        r"HEROKU_API_KEY",
+        r"HOMEBREW_GITHUB_API_TOKEN",
+        r"AWS_ACCESS_KEY_ID",
+        r"list_aws_accounts",
+        r"aws_secret_key",
+        r"bucket_name",
+        r"S3_ACCESS_KEY_ID",
+        r"S3_ENDPOINT",
+        r"S3_SECRET_ACCESS_KEY",
+        r"SECRET_KEY_BASE",
+        r"WORDPRESS_DB_PASSWORD=",
+        r"s3.yml",
+        r"deploy.rake",
+        r".sls",
+        r"AWS_SECRET_ACCESS_KEY",
+        r"API KEY",
+        r"API SECRET",
+        r"API TOKEN",
+        r"ROOT PASSWORD",
+        r"ADMIN PASSWORD",
+        r"GCP SECRET",
+        r"endpoint"
+        r"AWS SECRET"
+        ]
+    matches = []
+    for pattern in patterns:
+        if re.search(pattern, html_content):
+            matches.append(pattern)
+    return matches
+
+def process_file(file_url):
+    try:
+        response = requests.get(file_url, timeout=10)
+        if response.status_code == 200:
+            matches = find_react_references(response.text)
+            if matches:
+                return True, matches
+    except requests.RequestException:
+        pass  # Suppress the error message
+    return False, []
+
+def check_domain(domain):
+    try:
+        response = requests.get(domain, timeout=10)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            # Check the main HTML content
+            html_matches = find_react_references(response.text)
+            if html_matches:
+                print(f"React config found in HTML of {domain}: {', '.join(html_matches)}")
+
+            # Check all linked files
+            for tag in soup.find_all(['script', 'link'], src=True, href=True):
+                url_attr = 'src' if tag.get('src') else 'href'
+                file_url = urljoin(domain, tag[url_attr])
+                file_found, file_matches = process_file(file_url)
+                if file_found:
+                    file_type = file_url.split('.')[-1]
+                    print(f"React config found in {file_type.upper()} file ({file_url}): {', '.join(file_matches)}")
+    except requests.RequestException:
+        pass  # Suppress the error message
+
+def main(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            domains = [line.strip() for line in file if line.strip()]
+            for domain in domains:
+                check_domain(domain)
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Check domains for React references.')
+    parser.add_argument('file_path', type=str, help='File containing list of domains')
+    args = parser.parse_args()
+
+    main(args.file_path)
