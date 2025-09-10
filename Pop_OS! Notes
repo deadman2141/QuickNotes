@@ -1,0 +1,39 @@
+Clean install, 
+VERY SLOW, take your time, wait for process's
+NO DIALOG BOXES, so be patient!
+
+"Disk" manager:
+when partitioning, resetting the ui to make sure it uses all available space.
+also, additional drives (devs), make sure you select settings and "Take ownership" that fixed an issue with steam.
+
+saving NVIDA control panel settings
+this addes user execute permissions
+sudo chmod u+x /usr/share/screen-resolution-extra/nvidia-polkit
+
+STEAM
+install "Steam" from the Pop Shop, 
+THEN open a terminal and run "steam", this will complete first time initialization.
+
+go to steam
+
+fstab and your second drive.
+https://www.reddit.com/r/pop_os/comments/wk5vyu/mounting_a_second_drive/
+
+basically if you have pointed steam to your second drive, through the steam GUI, just edit your fstab to make sure the dirve mounts on startup.
+
+lsblk -o NAME,UUID,PTUUID,PARTUUID
+(Doublecheck with lsblk --help)
+Then using that info:
+UUID=123-YOUR-UUID /path/steam/made ext4 defaults,nofail 0 03
+
+
+For CAC readers
+This is to enable the cac reader
+sudo apt install pcscd
+
+This is required per DoDPKI website
+sudo apt install coolkey
+
+Add the cac reader to Mozzilla
+pkcs11-register
+from here https://github.com/M-Pepper/linux-cac-walkthrough
